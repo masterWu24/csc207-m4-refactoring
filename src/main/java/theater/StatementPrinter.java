@@ -26,6 +26,16 @@ public class StatementPrinter {
     }
 
     /**
+     * Returns the play associated with the given performance.
+     *
+     * @param performance the performance
+     * @return the corresponding play
+     */
+    private Play getPlay(Performance performance) {
+        return plays.get(performance.getPlayID());
+    }
+
+    /**
      * Returns a formatted statement for this invoice.
      *
      * @return the formatted statement
@@ -35,11 +45,10 @@ public class StatementPrinter {
         String result = "Statement for " + invoice.getCustomer() + "\n";
 
         for (Performance performance : invoice.getPerformances()) {
-            final Play play = plays.get(performance.getPlayID());
-            final int thisAmount = getAmount(performance, play);
+            final int thisAmount = getAmount(performance, getPlay(performance));
 
             result += String.format("  %s: %s (%s seats)\n",
-                    play.getName(),
+                    getPlay(performance).getName(),
                     usd(thisAmount),
                     performance.getAudience());
         }
@@ -55,8 +64,7 @@ public class StatementPrinter {
     private int getTotalAmount() {
         int result = 0;
         for (Performance performance : invoice.getPerformances()) {
-            final Play play = plays.get(performance.getPlayID());
-            result += getAmount(performance, play);
+            result += getAmount(performance, getPlay(performance));
         }
         return result;
     }
@@ -64,8 +72,7 @@ public class StatementPrinter {
     private int getTotalVolumeCredits() {
         int result = 0;
         for (Performance performance : invoice.getPerformances()) {
-            final Play play = plays.get(performance.getPlayID());
-            result += getVolumeCredits(performance, play);
+            result += getVolumeCredits(performance, getPlay(performance));
         }
         return result;
     }
@@ -100,9 +107,8 @@ public class StatementPrinter {
     }
 
     private static int getVolumeCredits(Performance performance, Play play) {
-        int volumeCredits =
-                Math.max(performance.getAudience()
-                        - Constants.BASE_VOLUME_CREDIT_THRESHOLD, 0);
+        int volumeCredits = Math.max(
+                performance.getAudience() - Constants.BASE_VOLUME_CREDIT_THRESHOLD, 0);
         if ("comedy".equals(play.getType())) {
             volumeCredits += performance.getAudience()
                     / Constants.COMEDY_EXTRA_VOLUME_FACTOR;
