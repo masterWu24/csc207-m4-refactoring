@@ -32,26 +32,41 @@ public class StatementPrinter {
      * @throws RuntimeException if a play type is unknown
      */
     public String statement() {
-        int totalAmount = 0;
-        int volumeCredits = 0;
         String result = "Statement for " + invoice.getCustomer() + "\n";
 
         for (Performance performance : invoice.getPerformances()) {
             final Play play = plays.get(performance.getPlayID());
             final int thisAmount = getAmount(performance, play);
 
-            volumeCredits += getVolumeCredits(performance, play);
-
             result += String.format("  %s: %s (%s seats)\n",
                     play.getName(),
                     usd(thisAmount),
                     performance.getAudience());
-
-            totalAmount += thisAmount;
         }
+
+        final int totalAmount = getTotalAmount();
+        final int volumeCredits = getTotalVolumeCredits();
 
         result += String.format("Amount owed is %s\n", usd(totalAmount));
         result += String.format("You earned %s credits\n", volumeCredits);
+        return result;
+    }
+
+    private int getTotalAmount() {
+        int result = 0;
+        for (Performance performance : invoice.getPerformances()) {
+            final Play play = plays.get(performance.getPlayID());
+            result += getAmount(performance, play);
+        }
+        return result;
+    }
+
+    private int getTotalVolumeCredits() {
+        int result = 0;
+        for (Performance performance : invoice.getPerformances()) {
+            final Play play = plays.get(performance.getPlayID());
+            result += getVolumeCredits(performance, play);
+        }
         return result;
     }
 
